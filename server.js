@@ -14,14 +14,13 @@
       if (err) {
         return res.send(404);
       }
-      return store.read(function(err, data) {
-        if (err) {
-          return res.send(500);
+      res.contentType(store.contentType);
+      res.header("Content-Length", store.length);
+      return store.readBuffer(store.length, function(err, buf) {
+        if (buf) {
+          res.write(buf);
         }
-        res.contentType(store.contentType);
-        return res.send(new Buffer(data, "binary"), {
-          "Content-Length": store.length
-        });
+        return res.end();
       });
     });
   };

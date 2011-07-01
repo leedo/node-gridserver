@@ -9,13 +9,13 @@ send_image = (image_id, res, db) ->
   store = new mongo.GridStore db, image_id, "r"
   store.open (err, store) ->
     return res.send 404 if err
-    store.read (err, data) ->
-      return res.send 500 if err
-      res.contentType store.contentType
-      res.send new Buffer(data, "binary"), {"Content-Length": store.length}
+    res.contentType store.contentType
+    res.header "Content-Length", store.length
+    store.readBuffer store.length, (err, buf) ->
+      res.write buf if buf
+      res.end()
 
 app.get /^\/([0-9a-f]+)$/, (req, res) ->
-
   if db.state == "connected"
     send_image req.params[0], res, db
   else
