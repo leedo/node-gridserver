@@ -7,9 +7,8 @@
     auto_reconnect: true
   });
   db = new mongo.Db("ars_api_development", server);
-  send_image = function(req, res, db) {
-    var image_id, store;
-    image_id = req.params[0];
+  send_image = function(image_id, res, db) {
+    var store;
     store = new mongo.GridStore(db, image_id, "r");
     return store.open(function(err, store) {
       if (err) {
@@ -28,13 +27,13 @@
   };
   app.get(/^\/([0-9a-f]+)$/, function(req, res) {
     if (db.state === "connected") {
-      return send_image(req, res, db);
+      return send_image(req.params[0], res, db);
     } else {
       return db.open(function(err, db) {
         if (err) {
           return res.send(500);
         }
-        return send_image(req, res, db);
+        return send_image(req.params[0], res, db);
       });
     }
   });
