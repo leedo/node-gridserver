@@ -1,5 +1,5 @@
 (function() {
-  var app, db, express, mongo, send_image, server;
+  var app, db, express, mongo, server, with_db;
   mongo = require("mongodb");
   express = require("express");
   app = express.createServer();
@@ -7,34 +7,32 @@
     auto_reconnect: true
   });
   db = new mongo.Db("ars_api_development", server);
-  send_image = function(image_id, res, db) {
-    var store;
-    store = new mongo.GridStore(db, image_id, "r");
-    return store.open(function(err, store) {
-      if (err) {
-        return res.send(404);
-      }
-      res.contentType(store.contentType);
-      res.header("Content-Length", store.length);
-      return store.readBuffer(store.length, function(err, buf) {
-        if (buf) {
-          res.write(buf);
-        }
-        return res.end();
-      });
-    });
+  with_db = function(cb) {
+    if (db.state === "connected") {
+      return cb(null, db);
+    } else {
+      return db.open(cb);
+    }
   };
   app.get(/^\/([0-9a-f]+)$/, function(req, res) {
-    if (db.state === "connected") {
-      return send_image(req.params[0], res, db);
-    } else {
-      return db.open(function(err, db) {
-        if (err) {
-          return res.send(500);
+    return with_db(function(err, db) {
+      var store;
+      if (err) {
+        return res.send(500);
+      }
+      store = new mongo.GridStore(db, req.params[0], "r");
+      return store.open(function(err, store) {
+        if (err || !store.length) {
+          return res.send(404);
         }
-        return send_image(req.params[0], res, db);
+        return store.readBuffer(store.length, function(err, buf) {
+          return res.send(buf, {
+            "Content-Type": store.contentType,
+            "Content-Length": store.length
+          }, 200);
+        });
       });
-    }
+    });
   });
   app.listen(3000);
 }).call(this);
