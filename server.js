@@ -1,5 +1,6 @@
 (function() {
-  var app, db, express, mongo, server, with_db;
+  var app, bson, db, express, mongo, server, with_db;
+  bson = require("bson");
   mongo = require("mongodb");
   express = require("express");
   app = express.createServer();
@@ -15,12 +16,14 @@
     }
   };
   app.get(/^\/([0-9a-f]+)$/, function(req, res) {
+    var object_id;
+    object_id = new bson.ObjectID(req.params[0]);
     return with_db(function(err, db) {
       var store;
       if (err) {
         return res.send(500);
       }
-      store = new mongo.GridStore(db, req.params[0], "r");
+      store = new mongo.GridStore(db, object_id, "r");
       return store.open(function(err, store) {
         if (err || !store.length) {
           return res.send(404);

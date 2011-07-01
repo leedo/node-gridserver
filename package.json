@@ -1,5 +1,5 @@
-{ "name": "gridserve"
-, "description": "Grid Serve"
+{ "name": "gridserver"
+, "description": "access GridFS over HTTP"
 , "author": "Lee Aylward"
 , "version": "0.0.1"
 , "licenses": [
@@ -8,12 +8,13 @@
   }]
 , "repository":
   { "type": "git"
-  , "url": "https://github.com/laylward/gridserve.git"
+  , "url": "https://github.com/laylward/node-gridserver.git"
   }
 , "main": "./lib/server.js"
 , "dependencies":
-  { "mongodb": ">=0.9.6"
+  { "mongodb": ">=0.9.6-3"
   , "express": ">=2.3.10"
+  , "bson": ">=0.0.3"
   }
 , "devDependencies":
   { "coffee-script": ">=1.1.1"
